@@ -20,15 +20,11 @@ import { Transaction } from "@/types/Transaction";
 export const printTransactions = (transactions: Transaction[]) => {
   const printWindow = window.open("", "_blank");
   if (printWindow) {
-    // Add Tailwind CSS styles for modern and clean design
     printWindow.document.write(`
       <html>
         <head>
-          <title>Transactions</title>
+          <title>All Transactions</title>
           <style>
-            /* Tailwind CSS from CDN */
-            @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
-
             body {
               font-family: 'Arial', sans-serif;
               margin: 0;
@@ -110,7 +106,9 @@ export const printTransactions = (transactions: Transaction[]) => {
                     <tr>
                       <td class="border px-4 py-2">${trx.tid}</td>
                       <td class="border px-4 py-2">${trx.type}</td>
-                      <td class="border px-4 py-2">${trx.amount}</td>
+                      <td class="border px-4 py-2">${trx.amount} ${
+                    process.env.NEXT_PUBLIC_CURRENCY
+                  }</td>
                       <td class="border px-4 py-2">${trx.description}</td>
                       <td class="border px-4 py-2">${new Date(
                         trx.date

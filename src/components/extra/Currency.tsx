@@ -14,15 +14,17 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-const currencyCode = process.env.CURRENCY || "USD";
+const currencyCode = process.env.NEXT_PUBLIC_CURRENCY || "USD";
 
-const formatCurrency = (amount: number) => {
+const formatCurrency = (amount: number, currency: string) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currencyCode,
+    currency: currency,
   }).format(amount);
 };
 
 export default function PriceDisplay({ amount }: { amount: number }) {
-  return <div>{formatCurrency(amount)}</div>;
+  const currency = currencyCode;
+
+  return <div>{formatCurrency(amount, currency)}</div>;
 }

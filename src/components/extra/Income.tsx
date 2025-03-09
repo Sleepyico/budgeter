@@ -24,7 +24,6 @@ export default function Income() {
   const [totalIncome, setTotalIncome] = useState<number>(0);
   const { currentBalance } = useBalance();
 
-  // Fetch the transactions and calculate the total expense
   useEffect(() => {
     const fetchTotalExpenses = async () => {
       try {
@@ -41,14 +40,14 @@ export default function Income() {
           0
         );
 
-        setTotalIncome(total); // Set the total expenses
+        setTotalIncome(total); 
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
     };
 
     fetchTotalExpenses();
-  }, [currentBalance]); // Run once when the component mounts
+  }, [currentBalance]); 
 
   return <InExCard title="Income" amount={totalIncome} />;
 }

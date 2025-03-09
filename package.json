@@ -1,21 +1,23 @@
 {
   "name": "oops-budgeter",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3031",
-    "build:db": "tsx ./db/init-db.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^4.1.3",
     "@iconify/react": "^5.2.0",
     "@radix-ui/react-dialog": "^1.1.6",
     "better-sqlite3": "^11.8.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "input-otp": "^1.4.2",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.477.0",
     "mongoose": "^8.12.1",
     "motion": "^12.4.10",
@@ -38,6 +40,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -45,5 +48,30 @@
     "eslint-config-next": "15.2.1",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "author": {
+    "name": "Laith Alkhaddam aka Iconical or Sleepyico",
+    "url": "https://iconical.dev"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://budget.oopsapps.tech",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OopsApps/budgeter"
+  },
+  "bugs": {
+    "url": "https://github.com/OopsApps/budgeter/issues"
+  },
+  "funding": {
+    "type": "sponsor",
+    "url": "https://buymeacoffee.com/iconical"
+  },
+  "description": "A personal budget tracker for effortless finance management.",
+  "keywords": [
+    "budget",
+    "finance",
+    "pwa",
+    "nextjs",
+    "react"
+  ]
 }

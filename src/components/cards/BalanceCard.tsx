@@ -22,7 +22,7 @@ import PriceDisplay from "../extra/Currency";
 import { useBalance } from "@/contexts/BalanceContext";
 
 export default function BalanceCard() {
-  const { currentBalance } = useBalance(); 
+  const { currentBalance } = useBalance();
 
   return (
     <HoverEffect className="p-2">

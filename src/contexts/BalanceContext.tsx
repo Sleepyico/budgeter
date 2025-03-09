@@ -27,29 +27,39 @@ import React, {
 interface BalanceContextType {
   currentBalance: number;
   setCurrentBalance: (balance: number) => void;
+  loading?: boolean;
 }
 
 const BalanceContext = createContext<BalanceContextType | undefined>(undefined);
 
 export const BalanceProvider = ({ children }: { children: ReactNode }) => {
   const [currentBalance, setCurrentBalance] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const response = await fetch("/api/transactions");
         const data = await response.json();
-        setCurrentBalance(data.currentBalance); // Get the current balance
+
+        const balance = isNaN(data.currentBalance) ? 0 : data.currentBalance;
+
+        setCurrentBalance(balance);
       } catch (error) {
         console.error("Error fetching transactions", error);
+        setCurrentBalance(0);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchTransactions();
-  }, [currentBalance]);
+  }, []);
 
   return (
-    <BalanceContext.Provider value={{ currentBalance, setCurrentBalance }}>
+    <BalanceContext.Provider
+      value={{ currentBalance, setCurrentBalance, loading }}
+    >
       {children}
     </BalanceContext.Provider>
   );

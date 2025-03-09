@@ -46,3 +46,10 @@ json.sqlite
 # workers
 sw.js
 workbox*.js
+
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+example.env

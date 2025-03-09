@@ -36,21 +36,20 @@ interface TransactionFormData {
 
 export default function NewTransaction() {
   const [successMessage, setSuccessMessage] = useState<string>("");
-  const { setCurrentBalance } = useBalance(); // Use context to set the balance
+  const { setCurrentBalance } = useBalance(); 
   const [type, setType] = useState<"income" | "expense">("income");
   const [popupVisible, setPopupVisible] = useState(false);
 
-  // Function to toggle the transaction type and update React Hook Form value
   const handleToggle = (selectedType: "income" | "expense") => {
-    console.log("Selected type:", selectedType); // Debugging
+    console.log("Selected type:", selectedType); 
     setType(selectedType);
-    setValue("type", selectedType); // Update React Hook Form value for 'type'
+    setValue("type", selectedType); 
   };
 
   const showPopup = () => {
-    setPopupVisible(true); // Show the popup
+    setPopupVisible(true); 
     setTimeout(() => {
-      setPopupVisible(false); // Hide the popup after 3 seconds
+      setPopupVisible(false); 
     }, 3000);
   };
 
@@ -63,7 +62,7 @@ export default function NewTransaction() {
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      date: new Date().toISOString().split("T")[0], // Default date set to today's date
+      date: new Date().toISOString().slice(0, 16),
     },
   });
 
@@ -82,8 +81,7 @@ export default function NewTransaction() {
       const result = await response.json();
       if (response.ok) {
         setSuccessMessage("Transaction added successfully!");
-        // Update the balance in context after a successful transaction
-        setCurrentBalance(result.currentBalance); // Assuming the API returns the updated balance
+        setCurrentBalance(result.currentBalance); 
         reset();
         showPopup();
       } else {
@@ -99,7 +97,7 @@ export default function NewTransaction() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <HoverEffect className="max-w-60 max-h-10 flex items-center justify-center gap-2">
+        <HoverEffect className="max-w-60 max-h-10 flex items-center justify-center gap-2 bg-blue-500/50 ">
           <Icon icon="line-md:text-box-multiple-twotone-to-text-box-twotone-transition" />
           New Transaction
         </HoverEffect>
@@ -116,7 +114,7 @@ export default function NewTransaction() {
                 className={`px-6 py-2 rounded-lg text-white font-semibold transition duration-300 ${
                   type === "income" ? "bg-green-500" : "bg-gray-700"
                 }`}
-                onClick={() => handleToggle("income")} // Corrected the function call here
+                onClick={() => handleToggle("income")} 
               >
                 Income
               </button>
@@ -125,7 +123,7 @@ export default function NewTransaction() {
                 className={`px-6 py-2 rounded-lg text-white font-semibold transition duration-300 ${
                   type === "expense" ? "bg-red-500" : "bg-gray-700"
                 }`}
-                onClick={() => handleToggle("expense")} // Corrected the function call here
+                onClick={() => handleToggle("expense")}
               >
                 Expense
               </button>
@@ -133,12 +131,12 @@ export default function NewTransaction() {
 
             <input {...register("type")} value={type} type="hidden" />
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 px-4 md:px-0">
               <div className="flex justify-between">
                 <label>Amount</label>
                 <Input
                   type="number"
-                  className="max-w-sm text-right"
+                  className="max-w-3xs md:max-w-sm text-right"
                   {...register("amount", {
                     setValueAs: (value) =>
                       value === "" ? 0 : parseFloat(value),
@@ -147,21 +145,23 @@ export default function NewTransaction() {
               </div>
               <div className="flex justify-between">
                 <label>Description</label>
-                <Textarea {...register("description")} className="max-w-sm" />
+                <Textarea
+                  {...register("description")}
+                  className="max-w-3xs md:max-w-sm"
+                />
               </div>
               <div className="flex justify-between">
                 <label>Date</label>
                 <Input
-                  type="date"
-                  className="max-w-sm text-right"
-                  {...register("date")} // Registering the date field
+                  type="datetime-local"
+                  className="max-w-3xs md:max-w-sm text-right"
+                  {...register("date")}
                 />
               </div>
             </div>
 
-            {/* Custom Submit Button (using a div) */}
             <HoverEffect
-              onClick={handleSubmit(onSubmit)} // Trigger the form submission
+              onClick={handleSubmit(onSubmit)} 
               role="button"
               className="cursor-pointer rounded-lg text-center font-semibold flex justify-center items-center bg-blue-600 text-white max-h-10"
             >

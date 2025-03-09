@@ -24,7 +24,6 @@ export default function Expense() {
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const { currentBalance } = useBalance();
 
-  // Fetch the transactions and calculate the total expense
   useEffect(() => {
     const fetchTotalExpenses = async () => {
       try {
@@ -41,14 +40,14 @@ export default function Expense() {
           0
         );
 
-        setTotalExpense(total); // Set the total expenses
+        setTotalExpense(total); 
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
     };
 
     fetchTotalExpenses();
-  }, [currentBalance]); // Run once when the component mounts
+  }, [currentBalance]); 
 
   return <InExCard title="Expenses" amount={totalExpense} />;
 }

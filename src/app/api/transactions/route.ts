@@ -16,26 +16,51 @@
  */
 
 import { Transaction } from "@/types/Transaction";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { QuickDB } from "quick.db";
+import jwt from "jsonwebtoken";
 
 const db = new QuickDB();
+const SECRET = process.env.JWT_SECRET as string;
 
 export async function GET() {
-  const transactions = await db.get("transactions");
+  const token = (await cookies()).get("authToken");
 
-  const currentBalance = (await db.get("balance")) || 0;
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
-  return new NextResponse(
-    JSON.stringify({
-      transactions,
-      currentBalance,
-    }),
-    { status: 200 }
-  );
+  try {
+    const decoded = jwt.verify(token.value, SECRET);
+
+    const transactions = await db.get("transactions");
+    const currentBalance = (await db.get("balance")) || 0;
+
+    return new NextResponse(
+      JSON.stringify({
+        user: decoded,
+        transactions,
+        currentBalance,
+      }),
+      { status: 200 }
+    );
+  } catch (err) {
+    if (err instanceof Error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token", error: err.message },
+        { status: 401 }
+      );
+    } else {
+      return NextResponse.json(
+        { message: "Invalid or expired token", error: "Unknown error" },
+        { status: 401 }
+      );
+    }
+  }
 }
 export async function POST(request: Request) {
-  const { type, amount, description }: Transaction = await request.json();
+  const { type, amount, description, date }: Transaction = await request.json();
 
   let currentBalance = (await db.get("balance")) || 0;
 
@@ -53,7 +78,7 @@ export async function POST(request: Request) {
     type,
     amount,
     description: description || "No description provided",
-    date: new Date().toISOString(),
+    date,
   };
 
   const transactions = (await db.get("transactions")) || [];
