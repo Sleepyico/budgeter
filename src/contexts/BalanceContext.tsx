@@ -34,7 +34,6 @@ const BalanceContext = createContext<BalanceContextType | undefined>(undefined);
 
 export const BalanceProvider = ({ children }: { children: ReactNode }) => {
   const [currentBalance, setCurrentBalance] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -48,18 +47,24 @@ export const BalanceProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error("Error fetching transactions", error);
         setCurrentBalance(0);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchTransactions();
-  }, []);
+
+    if (isNaN(currentBalance)) {
+      const intervalId = setInterval(() => {
+        fetchTransactions();
+      }, 1000);
+
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [currentBalance]);
 
   return (
-    <BalanceContext.Provider
-      value={{ currentBalance, setCurrentBalance, loading }}
-    >
+    <BalanceContext.Provider value={{ currentBalance, setCurrentBalance }}>
       {children}
     </BalanceContext.Provider>
   );

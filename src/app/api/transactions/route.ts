@@ -23,9 +23,20 @@ import jwt from "jsonwebtoken";
 
 const db = new QuickDB();
 const SECRET = process.env.JWT_SECRET as string;
+const BASE_URL = process.env.NEXT_PUBLIC_URL as string;
 
 export async function GET() {
-  const token = (await cookies()).get("authToken");
+  const response = new NextResponse();
+
+  response.headers.set("Access-Control-Allow-Origin", BASE_URL);
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE");
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken");
 
   if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -35,7 +46,9 @@ export async function GET() {
     const decoded = jwt.verify(token.value, SECRET);
 
     const transactions = await db.get("transactions");
-    const currentBalance = (await db.get("balance")) || 0;
+    const currentBalance = await db.get("balance");
+
+    response.headers.set("Content-Type", "application/json");
 
     return new NextResponse(
       JSON.stringify({
@@ -47,11 +60,14 @@ export async function GET() {
     );
   } catch (err) {
     if (err instanceof Error) {
+      response.headers.set("Content-Type", "application/json");
+
       return NextResponse.json(
         { message: "Invalid or expired token", error: err.message },
         { status: 401 }
       );
     } else {
+      response.headers.set("Content-Type", "application/json");
       return NextResponse.json(
         { message: "Invalid or expired token", error: "Unknown error" },
         { status: 401 }
@@ -60,82 +76,147 @@ export async function GET() {
   }
 }
 export async function POST(request: Request) {
-  const { type, amount, description, date }: Transaction = await request.json();
+  const response = new NextResponse();
 
-  let currentBalance = (await db.get("balance")) || 0;
+  response.headers.set("Access-Control-Allow-Origin", BASE_URL);
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE");
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
-  if (type === "income") {
-    currentBalance += amount;
-  } else if (type === "expense") {
-    currentBalance -= amount;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken");
+
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  let transactionId = (await db.get("transactionId")) || 0;
-  transactionId++;
+  try {
+    const { type, amount, description, date }: Transaction =
+      await request.json();
 
-  const transaction: Transaction = {
-    tid: transactionId,
-    type,
-    amount,
-    description: description || "No description provided",
-    date,
-  };
+    let currentBalance = (await db.get("balance")) || 0;
 
-  const transactions = (await db.get("transactions")) || [];
+    if (type === "income") {
+      currentBalance += amount;
+    } else if (type === "expense") {
+      currentBalance -= amount;
+    }
 
-  transactions.push(transaction);
+    let transactionId = (await db.get("transactionId")) || 0;
+    transactionId++;
 
-  await db.set("transactions", transactions);
-  await db.set("transactionId", transactionId);
+    const transaction: Transaction = {
+      tid: transactionId,
+      type,
+      amount,
+      description: description || "No description provided",
+      date,
+    };
 
-  await db.set("balance", currentBalance);
+    const transactions = (await db.get("transactions")) || [];
 
-  return new NextResponse(
-    JSON.stringify({
-      message: "Transaction added",
-      transaction,
-      currentBalance,
-    }),
-    { status: 201 }
-  );
+    transactions.push(transaction);
+
+    await db.set("transactions", transactions);
+    await db.set("transactionId", transactionId);
+
+    await db.set("balance", currentBalance);
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Transaction added",
+        transaction,
+        currentBalance,
+      }),
+      { status: 201 }
+    );
+  } catch (err) {
+    if (err instanceof Error) {
+      response.headers.set("Content-Type", "application/json");
+      return NextResponse.json(
+        { message: "Failed to add a new transaction:", error: err.message },
+        { status: 401 }
+      );
+    } else {
+      response.headers.set("Content-Type", "application/json");
+      return NextResponse.json(
+        { message: "Failed to add a new transaction:", error: "Unknown error" },
+        { status: 401 }
+      );
+    }
+  }
 }
 
 export async function DELETE(request: Request) {
-  const { tid }: { tid: number } = await request.json();
+  const response = new NextResponse();
 
-  const transactions = (await db.get("transactions")) || [];
-
-  const transactionToDelete = transactions.find(
-    (transaction: Transaction) => transaction.tid === tid
+  response.headers.set("Access-Control-Allow-Origin", BASE_URL);
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE");
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
   );
 
-  if (!transactionToDelete) {
-    return new NextResponse(
-      JSON.stringify({ message: "Transaction not found" }),
-      { status: 404 }
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken");
+
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { tid }: { tid: number } = await request.json();
+
+    const transactions = (await db.get("transactions")) || [];
+
+    const transactionToDelete = transactions.find(
+      (transaction: Transaction) => transaction.tid === tid
     );
+
+    if (!transactionToDelete) {
+      return new NextResponse(
+        JSON.stringify({ message: "Transaction not found" }),
+        { status: 404 }
+      );
+    }
+
+    const updatedTransactions = transactions.filter(
+      (transaction: Transaction) => transaction.tid !== tid
+    );
+
+    let currentBalance = await db.get("balance");
+
+    if (transactionToDelete.type === "income") {
+      currentBalance -= transactionToDelete.amount;
+    } else if (transactionToDelete.type === "expense") {
+      currentBalance += transactionToDelete.amount;
+    }
+
+    await db.set("transactions", updatedTransactions);
+    await db.set("balance", currentBalance);
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Transaction deleted successfully",
+        currentBalance,
+      }),
+      { status: 200 }
+    );
+  } catch (err) {
+    if (err instanceof Error) {
+      response.headers.set("Content-Type", "application/json");
+      return NextResponse.json(
+        { message: "Deletion was not successful", error: err.message },
+        { status: 401 }
+      );
+    } else {
+      response.headers.set("Content-Type", "application/json");
+      return NextResponse.json(
+        { message: "Deletion was not successful", error: "Unknown error" },
+        { status: 401 }
+      );
+    }
   }
-
-  const updatedTransactions = transactions.filter(
-    (transaction: Transaction) => transaction.tid !== tid
-  );
-
-  let currentBalance = (await db.get("balance")) || 0;
-
-  if (transactionToDelete.type === "income") {
-    currentBalance -= transactionToDelete.amount;
-  } else if (transactionToDelete.type === "expense") {
-    currentBalance += transactionToDelete.amount;
-  }
-
-  await db.set("transactions", updatedTransactions);
-  await db.set("balance", currentBalance);
-
-  return new NextResponse(
-    JSON.stringify({
-      message: "Transaction deleted successfully",
-      currentBalance,
-    }),
-    { status: 200 }
-  );
 }
